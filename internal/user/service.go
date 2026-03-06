@@ -66,3 +66,5 @@ func (s *Service) DeleteUser(id int) error {
 
     return err
 }
+
+//proximo handler
