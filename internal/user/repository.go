@@ -52,3 +52,56 @@ func (r *Repository) findAll() ([]User, error){
 
 	return users, nil
 }
+
+func (r *Repository) findByID(id int) (*User, error){
+	query :=`SELECT id, name, email, created_at, updated_at
+		FROM users
+		WHERE id = $1`
+
+	user := &User{}
+	err := r.db.QueryRow(query, id).
+		Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil{
+		return nil, nil //nao foi encontrado
+	}
+	if err != nil{
+		return nil, fmt.Errorf("Erro ao buscar o usuario: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *Repository) Update(id int, req UpdateUserRequest)(*User, error){
+	query := `UPDATE users
+		SET name= $1, email = $2, updated_at = NOW()
+		WHERE id = $3
+		RETURNING id, name, emai, created_at, updated_at`
+
+	user := &User{}
+	err := r.db.QueryRow(query, req.Name, req.Email, id).
+		Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	if err == sql.ErrNoRows{
+		return nil, nil
+	}
+	if err != nil{
+		return nil, fmt.Errorf("Erro ao atualizar o usuario: %w", err)
+	}	
+
+	return user, nil
+}
+
+func (r *Repository) Delete(id int) error {
+    query := `DELETE FROM users WHERE id = $1`
+
+    result, err := r.db.Exec(query, id)
+    if err != nil {
+        return fmt.Errorf("erro ao deletar usuário: %w", err)
+    }
+
+    rowsAffected, _ := result.RowsAffected()
+    if rowsAffected == 0 {
+        return sql.ErrNoRows // não encontrado
+    }
+
+    return nil
+}
