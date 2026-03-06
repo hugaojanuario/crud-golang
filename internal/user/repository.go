@@ -9,7 +9,7 @@ type Repository struct {
 	db *sql.DB
 }
 
-func newRepository(db *sql.DB) *Repository {
+func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
@@ -29,7 +29,7 @@ func (r *Repository) CreateUser(req CreateUserRequest, hashedPassword string) (*
 	return user, nil
 }
 
-func (r *Repository) findAll() ([]User, error){
+func (r *Repository) FindAll() ([]User, error){
 	query := `
         SELECT id, name, email, created_at, updated_at
         FROM users
@@ -44,7 +44,7 @@ func (r *Repository) findAll() ([]User, error){
 	var users []User
 	for rows.Next(){
 		var u User
-		if err := rows.Scan(&u.Name, &u.Email, &u.CreatedAt, *&u.UpdatedAt); err != nil{
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt, &u.UpdatedAt); err != nil{
 			return nil, fmt.Errorf("Erro ao ler o usuario: %w", err)
 		}
 		users =append(users, u)
@@ -53,7 +53,7 @@ func (r *Repository) findAll() ([]User, error){
 	return users, nil
 }
 
-func (r *Repository) findByID(id int) (*User, error){
+func (r *Repository) FindByID(id int) (*User, error){
 	query :=`SELECT id, name, email, created_at, updated_at
 		FROM users
 		WHERE id = $1`
@@ -61,7 +61,8 @@ func (r *Repository) findByID(id int) (*User, error){
 	user := &User{}
 	err := r.db.QueryRow(query, id).
 		Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil{
+	
+	if err == sql.ErrNoRows {
 		return nil, nil //nao foi encontrado
 	}
 	if err != nil{
@@ -75,7 +76,7 @@ func (r *Repository) Update(id int, req UpdateUserRequest)(*User, error){
 	query := `UPDATE users
 		SET name= $1, email = $2, updated_at = NOW()
 		WHERE id = $3
-		RETURNING id, name, emai, created_at, updated_at`
+		RETURNING id, name, email, created_at, updated_at`
 
 	user := &User{}
 	err := r.db.QueryRow(query, req.Name, req.Email, id).
