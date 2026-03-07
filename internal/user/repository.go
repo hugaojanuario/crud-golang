@@ -106,4 +106,3 @@ func (r *Repository) Delete(id int) error {
 
     return nil
 }
-//proximo é o service, onde vamos colocar a regra de negocio, e depois o handler para lidar com as requisições HTTP
