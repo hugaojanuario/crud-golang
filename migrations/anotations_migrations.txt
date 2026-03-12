@@ -1,0 +1,11 @@
+#CREATE NEW MIGRATION#
+migrate create -ext sql -dir migrations -seq create_students_table
+
+#RUN MIGRATION#
+migrate -path migrations -database "postgres://user:pass@localhost:5432/db?sslmode=disable" up
+
+#ROLLBACK MIGRATION#
+migrate -path migrations -database "postgres://..." down
+
+#VIEW VERSION#
+migrate -path migrations -database "postgres://..." version
